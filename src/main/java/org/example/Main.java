@@ -1,7 +1,6 @@
 package org.example;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 public class Main {
     public static final Map<Integer, Integer> sizeToFreq = new HashMap<>();
@@ -17,6 +16,7 @@ public class Main {
                         countR ++;
                     }
                 }
+                System.out.println("Количество повторений в этом потоке = " + countR);
                 synchronized (sizeToFreq){
                     if(sizeToFreq.containsKey(countR)){
                         freq = sizeToFreq.get(countR);
