@@ -5,9 +5,24 @@ import java.util.*;
 public class Main {
     public static final Map<Integer, Integer> sizeToFreq = new HashMap<>();
     public static void main(String[] args) throws InterruptedException {
+        Thread thread = new Thread(() -> {
+            synchronized (sizeToFreq){
+                while (!Thread.interrupted()){
+                    try{
+                        sizeToFreq.wait();
+                    } catch (InterruptedException e) {
+                        System.out.println("Конец программы");
+                    }
+                    int maxValueKey = getMaxValueKey();
+                    System.out.println("Самое частое количество повторений на данный момент "+ maxValueKey +
+                            " (встретилось "+ sizeToFreq.get(maxValueKey) +" раз)");
+                }
+            }
+        });
+        thread.start();
         List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
-            Thread thread = new Thread(() -> {
+            Thread th = new Thread(() -> {
                 int countR = 0;
                 int freq;
                 char[] chars =  generateRoute("RLRFR", 100).toCharArray();
@@ -25,16 +40,19 @@ public class Main {
                         freq = 1;
                     }
                     sizeToFreq.put(countR, freq);
+                    sizeToFreq.notify();
                 }
             });
-            threads.add(thread);
-            thread.start();
+            threads.add(th);
+            th.start();
         }
         for(var th: threads){
             th.join();
         }
+        thread.interrupt();
         int maxValueKey = getMaxValueKey();
-        System.out.println("Самое частое количество повторений "+ maxValueKey + " (встретилось "+ sizeToFreq.get(maxValueKey) +" раз)");
+        System.out.println("Самое частое количество повторений "+ maxValueKey + " (встретилось "
+                + sizeToFreq.get(maxValueKey) +" раз)");
         sizeToFreq.remove(maxValueKey);
         System.out.println("Другие размеры:");
         for (Map.Entry<Integer, Integer> entry : sizeToFreq.entrySet()) {
